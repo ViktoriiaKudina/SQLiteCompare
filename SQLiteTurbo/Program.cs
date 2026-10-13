@@ -3,11 +3,9 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using log4net;
-using log4net.Config;
+using log4net.Core;
+using log4net.Repository.Hierarchy;
 using AutomaticUpdates;
-
-// Configure log4net using the .config file
-[assembly: log4net.Config.XmlConfigurator(Watch = true)]
 
 namespace SQLiteTurbo
 {
@@ -31,8 +29,8 @@ namespace SQLiteTurbo
                 _mutex = new Mutex(false, "SQLiteCompare");
             }
 
-            // Configure log4net
-            BasicConfigurator.Configure();
+            // Configure log4net programmatically (no external XML configuration file)
+            ConfigureLogging();
 
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
             Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
@@ -67,6 +65,18 @@ namespace SQLiteTurbo
 
             // If there are pending software updates - apply them now
             UpdateEngine.ApplyPendingUpdates();
+        }
+
+        /// <summary>
+        /// Configures log4net entirely in code so that the application never loads
+        /// (or depends on) an external XML configuration file.
+        /// </summary>
+        private static void ConfigureLogging()
+        {
+            Hierarchy hierarchy = (Hierarchy)LogManager.GetRepository();
+            hierarchy.Root.Level = Level.Debug;
+            hierarchy.Root.AddAppender(new LocalUserFileAppender());
+            hierarchy.Configured = true;
         }
 
         private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
