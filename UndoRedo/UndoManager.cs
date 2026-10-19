@@ -2,7 +2,8 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
-using System.Runtime.Serialization.Formatters.Binary;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace UndoRedo
 {
@@ -178,14 +179,21 @@ namespace UndoRedo
         /// Returns a list of actions that were saved into a history file.
         /// </summary>
         /// <param name="fpath">The path to the file that contains the actions.</param>
-        /// <returns>The list of action records that were recorded in the file.</returns>
+        /// <returns>The list of action records that were recorded in the file,
+        /// or an empty list if the file contains no records.</returns>
+        /// <exception cref="InvalidOperationException">The file does not contain
+        /// a valid actions history (for example, it is malformed, empty, or was
+        /// written by an older version of the application).</exception>
         public List<ActionRecord> LoadActionsHistory(string fpath)
         {
-            BinaryFormatter s = new BinaryFormatter();
+            XmlSerializer s = new XmlSerializer(typeof(List<ActionRecord>));
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.DtdProcessing = DtdProcessing.Prohibit;
             using (FileStream fs = File.OpenRead(fpath))
+            using (XmlReader reader = XmlReader.Create(fs, settings))
             {
-                object obj = s.Deserialize(fs);
-                return obj as List<ActionRecord>;
+                object obj = s.Deserialize(reader);
+                return obj as List<ActionRecord> ?? new List<ActionRecord>();
             } // using
         }
 
@@ -196,7 +204,7 @@ namespace UndoRedo
         /// <param name="history">The list of actions history to save</param>
         public void SaveActionsHistory(string fpath, List<ActionRecord> history)
         {
-            BinaryFormatter s = new BinaryFormatter();
+            XmlSerializer s = new XmlSerializer(typeof(List<ActionRecord>));
             using (FileStream fs = File.Open(fpath, FileMode.Create))
             {
                 s.Serialize(fs, history);

@@ -1,14 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Xml.Serialization;
 
 namespace UndoRedo
 {
     /// <summary>
     /// Encapsulates the details a single action that was performed by the user.
     /// </summary>
-    [Serializable]
     public class ActionRecord
     {
         #region Constructors
@@ -29,21 +25,25 @@ namespace UndoRedo
         public DateTime ActionTime
         {
             get { return _actionTime; }
+            set { _actionTime = value; }
         }
 
         public string ActionName
         {
             get { return _actionName; }
+            set { _actionName = value; }
         }
 
         public string ActionDescription
         {
             get { return _actionDescription; }
+            set { _actionDescription = value; }
         }
 
         public ActionType ActionType
         {
             get { return _actionType; }
+            set { _actionType = value; }
         }
         #endregion
 
